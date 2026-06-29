@@ -1,0 +1,5 @@
+example:
+  number: 1
+  title: Example Presentation
+  description: An example slideshow demonstrating the slide infrastructure.
+  audience: Example
