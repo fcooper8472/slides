@@ -7,19 +7,22 @@ drawings:
   persist: false
 transition: slide-left
 mdc: true
+date: "02 July 2026"
 ---
 
-# The Subcellular Element Method
+<style>
+.oxrse-cover-group { visibility: hidden; position: relative; }
+.oxrse-cover-group::after {
+  content: 'Chaste Workshop, Sheffield, 01-03 July 2026';
+  visibility: visible;
+  position: absolute;
+  left: 0;
+  white-space: nowrap;
+}
+.oxrse-cover-email { display: none; }
+</style>
 
-## Theory and Chaste Implementation
-
-<div class="mt-6 opacity-60 text-sm italic">
-Sandersius &amp; Newman, Phys. Biol. 5 (2008) 015002
-</div>
-
-<div class="mt-8 border border-blue-300 rounded px-4 py-2 inline-block opacity-70 text-base italic">
-[ Your name ] &middot; [ Date ] &middot; [ Workshop / Event ]
-</div>
+<img src="./img/chaste_logo.png" class="absolute bottom-8 right-8" style="height: 3.5rem;" />
 
 ---
 layout: section
@@ -86,6 +89,10 @@ $$
 </div>
 
 Forward-Euler integration: $\Delta y = (F/\eta)\,\Delta t$
+
+<div class="absolute bottom-4 right-6 text-xs opacity-50 italic">
+Sandersius &amp; Newman, Phys. Biol. <b>5</b>, 015002 (2008)
+</div>
 
 ---
 layout: two-cols
