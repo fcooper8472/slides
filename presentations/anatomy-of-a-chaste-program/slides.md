@@ -118,6 +118,10 @@ Once you decide on the model, just swap in specific components to each box.
 
 ---
 
+<img src="./img/frameworks.png" class="absolute inset-0 w-full h-full" style="object-fit: contain;" />
+
+---
+
 # How the Pieces Map to Classes
 
 Chaste uses **object oriented programming**.
