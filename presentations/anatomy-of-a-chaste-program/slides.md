@@ -7,13 +7,13 @@ drawings:
   persist: false
 transition: slide-left
 mdc: true
-date: "01 July 2026"
+date: "Chaste Workshop, Sheffield, 01-03 July 2026"
 ---
 
 <style>
 .oxrse-cover-group { visibility: hidden; position: relative; }
 .oxrse-cover-group::after {
-  content: 'For computational biologists — first steps with Chaste';
+  content: 'Fergus Cooper';
   visibility: visible;
   position: absolute;
   left: 0;
@@ -22,7 +22,7 @@ date: "01 July 2026"
 .oxrse-cover-email { display: none; }
 </style>
 
-<img src="./img/chaste_logo.png" class="absolute bottom-8 right-8" style="height: 3.5rem;" />
+<img src="./img/chaste_logo.png" class="absolute bottom-8 right-8" style="height: 6.5rem;" />
 
 ---
 
@@ -31,22 +31,26 @@ date: "01 July 2026"
 **C**ancer, **H**eart **a**nd **S**oft **T**issue **E**nvironment
 
 - An open-source C++ library for **simulating biological tissue and organs**
-- Built at Oxford; used for cardiac electrophysiology, cell-based tissue, lung, and more
-- This talk focuses on the **cell-based** part: tissue as a population of interacting cells
+- Built at Oxford, and used for cardiac electrophysiology, cell-based tissue, lung, and more
+- Today we focus on the **cell-based** part: tissue as a population of interacting cells
 
-Two ways to drive it:
+There are two ways to drive it:
 
-- **C++** — write a test, compile, run. Maximum performance and full API access.
-- **PyChaste** — the same engine exposed to Python. Scripting, notebooks, inline visualisation.
+- **C++**: write a test, compile it, and run it. Maximum performance and full API access.
+- **PyChaste**: the same engine exposed to Python, with scripting, notebooks, and inline visualisation.
 
-> Our goal today: understand the *shape* of a Chaste program — the handful of objects every
-> simulation is built from — so the tutorials read like a recipe, not a mystery.
+> The goal today is to understand the *shape* of a Chaste program: the handful of objects every
+> simulation is built from. Learn the skeleton once and the tutorials read like a recipe rather
+> than a mystery.
 
 ---
 layout: section
 ---
 
-# Part 1: The Conceptual Picture
+<div class="text-center">
+  <div class="text-8xl font-bold" style="color:#002147">Part 1</div>
+  <div class="text-3xl mt-6 opacity-70">The Conceptual Picture</div>
+</div>
 
 ---
 
@@ -55,15 +59,15 @@ layout: section
 Whatever the biology, a Chaste cell-based simulation always answers the same five questions:
 
 <div class="grid grid-cols-1 gap-1 mt-4 text-sm">
-<div><b>1. Space</b> &nbsp;—&nbsp; where do cells live? &nbsp;→&nbsp; a <b>Mesh</b></div>
-<div><b>2. Cells</b> &nbsp;—&nbsp; what is each cell, and how does it grow/divide? &nbsp;→&nbsp; a list of <b>Cells</b> + cell-cycle models</div>
-<div><b>3. Tissue</b> &nbsp;—&nbsp; how are cells tied to space? &nbsp;→&nbsp; a <b>CellPopulation</b></div>
-<div><b>4. Rules</b> &nbsp;—&nbsp; what physics/biology acts on them? &nbsp;→&nbsp; <b>Forces</b>, boundary conditions, killers, modifiers</div>
-<div><b>5. Time</b> &nbsp;—&nbsp; how do we step it forward and record it? &nbsp;→&nbsp; a <b>Simulation</b> + output writers</div>
+<div><b>1. Space.</b> &nbsp; Where do cells live? &nbsp;→&nbsp; a <b>Mesh</b></div>
+<div><b>2. Cells.</b> &nbsp; What is each cell, and how does it grow and divide? &nbsp;→&nbsp; a list of <b>Cells</b> with cell-cycle models</div>
+<div><b>3. Tissue.</b> &nbsp; How are cells tied to space? &nbsp;→&nbsp; a <b>CellPopulation</b></div>
+<div><b>4. Rules.</b> &nbsp; What physics and biology act on them? &nbsp;→&nbsp; <b>Forces</b>, boundary conditions, killers, modifiers</div>
+<div><b>5. Time.</b> &nbsp; How do we step it forward and record it? &nbsp;→&nbsp; a <b>Simulation</b> and output writers</div>
 </div>
 
 <div class="mt-6 p-3 rounded" style="background:#eef3fa;border:1px solid #c5d5e8">
-Every tutorial you will read is these five objects, assembled in this order, then
+Every tutorial you will read is these five objects, assembled in this order, and then
 <code>Solve()</code>. Learn the skeleton once and every example becomes a variation on a theme.
 </div>
 
@@ -83,10 +87,23 @@ Every tutorial you will read is these five objects, assembled in this order, the
   <div class="flex-1 rounded-lg py-4 px-1" style="background:#002147;color:white;border:1px solid #002147">Solve()<br><span class="font-normal opacity-80 text-xs">→ VTK output</span></div>
 </div>
 
-<div class="mt-10 grid grid-cols-2 gap-6 text-sm">
+<div class="mt-12 text-center text-base" style="color:#002147">
+Build these five objects in order, then call <code>Solve()</code>. That is every cell-based
+simulation in Chaste.
+</div>
+
+<div class="mt-6 text-center text-sm italic opacity-70">
+Swap any one box and you get a different kind of model. Let's see how.
+</div>
+
+---
+
+# One Skeleton, Many Models
+
+<div class="grid grid-cols-2 gap-6 mt-6 text-sm">
 <div>
 
-**The same skeleton, many flavours.** Swap one box and you get a different model:
+**The same skeleton, many flavours.** Swap one box and you change the model:
 
 - Mesh-based (Voronoi springs)
 - Node-based (overlapping spheres)
@@ -97,14 +114,19 @@ Every tutorial you will read is these five objects, assembled in this order, the
 </div>
 <div>
 
-**On-lattice vs off-lattice** decides the *Simulation* type:
+**On-lattice or off-lattice** decides the *Simulation* type:
 
-- Off-lattice → `OffLatticeSimulation` (cells move continuously under forces)
-- On-lattice → `OnLatticeSimulation` (cells update on a grid via update rules)
+- Off-lattice uses `OffLatticeSimulation`, where cells move continuously under forces
+- On-lattice uses `OnLatticeSimulation`, where cells update on a grid via update rules
 
-The population class you pick implies which one you need.
+The population class you pick tells you which one you need.
 
 </div>
+</div>
+
+<div class="mt-8 p-3 rounded text-sm" style="background:#eef3fa;border:1px solid #c5d5e8">
+This is why the rest of the workshop feels familiar: once you know one model, the others are the
+same recipe with a different box swapped in.
 </div>
 
 ---
@@ -123,7 +145,7 @@ simulation only ever talks to the interface. That is why swapping models is so c
 | Constraints | `AbstractCellPopulationBoundaryCondition` | `SphereGeometryBoundaryCondition` |
 | Time loop | `AbstractCellBasedSimulation` | `OffLatticeSimulation`, `OnLatticeSimulation` |
 
-The cell list itself is a `std::vector<CellPtr>` (C++) — a plain list of cells in Python.
+The cell list itself is a `std::vector<CellPtr>` in C++, and a plain list of cells in Python.
 
 ---
 
@@ -134,11 +156,11 @@ The cell list itself is a `std::vector<CellPtr>` (C++) — a plain list of cells
 
 ### C++
 
-- The native library; **everything** lives here first
+- The native library, where **everything** lives first
 - A simulation is written as a **CxxTest** test method, compiled to a binary
 - Templated on dimension: `NodeBasedCellPopulation<2>`
 - You manage memory (`MAKE_PTR`, `new`/`delete`)
-- Fastest; needed for new model development
+- Fastest, and needed for new model development
 
 </div>
 <div class="p-3 rounded" style="background:#f0f7ee;border:1px solid #cfe3c5">
@@ -146,11 +168,11 @@ The cell list itself is a `std::vector<CellPtr>` (C++) — a plain list of cells
 ### PyChaste
 
 - Python bindings over the **same compiled engine**
-- A simulation is an ordinary script / `unittest` / Jupyter notebook
+- A simulation is an ordinary script, `unittest`, or Jupyter notebook
 - Dimension is a **subscript**: `NodeBasedCellPopulation[2]`
-- Memory is automatic — no `new`/`delete`
+- Memory is automatic, with no `new`/`delete`
 - Adds `VtkScene` for **inline 3-D visualisation**
-- Ideal for exploration, teaching, parameter sweeps
+- Ideal for exploration, teaching, and parameter sweeps
 
 </div>
 </div>
@@ -163,13 +185,15 @@ Same five objects, same method names, same results files. Only the syntax and th
 layout: section
 ---
 
-# Part 2: Building One, Piece by Piece
-
-A node-based monolayer — in both languages
+<div class="text-center">
+  <div class="text-8xl font-bold" style="color:#002147">Part 2</div>
+  <div class="text-3xl mt-6 opacity-70">Building One, Piece by Piece</div>
+  <div class="text-xl mt-3 opacity-50">A node-based monolayer, in both languages</div>
+</div>
 
 ---
 
-# Ingredient 1 — The Mesh (Space)
+# Ingredient 1: The Mesh (Space)
 
 A **mesh** holds the spatial degrees of freedom. For a node-based model that is a
 `NodesOnlyMesh`: cells are points, and a **cut-off length** sets who interacts with whom.
@@ -209,13 +233,14 @@ mesh.ConstructNodesWithoutMesh(
 <div class="mt-3 text-sm">
 
 - A **generator** (here `HoneycombMeshGenerator`) is a convenience that builds a regular mesh for you
-- Note the interface difference: `<2>` template parameter vs `[2]` subscript; `*p_generating_mesh` vs just the object
+- Notice the interface difference: a `<2>` template parameter versus a `[2]` subscript, and
+  `*p_generating_mesh` versus just passing the object
 
 </div>
 
 ---
 
-# Ingredient 2 — The Cells (Biology)
+# Ingredient 2: The Cells (Biology)
 
 Each spatial site gets a **Cell**, and each cell owns a **cell-cycle model** that decides
 when it divides. `CellsGenerator` is the helper that mass-produces one cell per node.
@@ -252,16 +277,17 @@ cells = gen.GenerateBasicRandom(
 
 <div class="mt-3 text-sm">
 
-- The **cell-cycle model** is a template/subscript argument — swap `UniformCellCycleModel` for
-  `NoCellCycleModel`, `StochasticOxygenBasedCellCycleModel`, etc.
-- **Proliferative type** (`Transit`, `Differentiated`, `Stem`) tags what a cell is allowed to do
-- C++ fills a vector passed *in*; PyChaste *returns* the list — a small but typical ergonomic difference
+- The **cell-cycle model** is a template or subscript argument. Swap `UniformCellCycleModel` for
+  `NoCellCycleModel`, `StochasticOxygenBasedCellCycleModel`, and so on.
+- The **proliferative type** (`Transit`, `Differentiated`, `Stem`) tags what a cell is allowed to do
+- C++ fills a vector passed *in*, while PyChaste *returns* the list. It is a small but typical
+  ergonomic difference.
 
 </div>
 
 ---
 
-# Ingredient 3 — The Cell Population (Tissue)
+# Ingredient 3: The Cell Population (Tissue)
 
 The **CellPopulation** marries the cell list to the mesh and is the object everything else
 queries. The *type* of population is what makes this a "node-based" simulation.
@@ -303,10 +329,10 @@ This one line encodes the modelling paradigm. Change just this class and you cha
 
 ---
 
-# (PyChaste bonus) — Peek Before You Run
+# PyChaste Bonus: Peek Before You Run
 
-Because PyChaste runs in notebooks, you can render the population *before* solving — a quick
-sanity check that the C++ workflow does only via ParaView after the fact.
+Because PyChaste runs in notebooks, you can render the population *before* solving. That is a
+quick sanity check, whereas the C++ workflow only shows you the result in ParaView after the run.
 
 ```python
 scene = chaste.visualization.VtkScene[2]()
@@ -316,17 +342,17 @@ scene.Start()                       # shows the initial tissue inline
 
 <div class="mt-4 text-sm">
 
-- `VtkScene` has **no C++ equivalent in the workflow** — it is a PyChaste convenience built for
-  interactive use
+- `VtkScene` has **no C++ equivalent in the workflow**. It is a PyChaste convenience built for
+  interactive use.
 - Later we attach it as a *modifier* so snapshots are captured *during* the run
-- This is the single biggest day-to-day reason biologists reach for PyChaste: a tight,
-  visual, iterate-in-seconds loop
+- This is the single biggest day-to-day reason biologists reach for PyChaste: a tight, visual,
+  iterate-in-seconds loop
 
 </div>
 
 ---
 
-# Ingredient 4 — The Simulation + Rules
+# Ingredient 4: The Simulation and Rules
 
 Wrap the population in a **Simulation**, set output and timing, then **add the physics**:
 forces, boundary conditions, cell killers, and modifiers.
@@ -365,18 +391,18 @@ simulator.AddForce(force)
 
 <div class="mt-3 text-sm">
 
-- `AddForce`, `AddCellPopulationBoundaryCondition`, `AddCellKiller`, `AddSimulationModifier`
-  are how you compose behaviour — **stack as many as you like**
+- `AddForce`, `AddCellPopulationBoundaryCondition`, `AddCellKiller`, and `AddSimulationModifier`
+  are how you compose behaviour, so **stack as many as you like**
 - `SetSamplingTimestepMultiple` controls how often results are written (not the solver `dt`)
 
 </div>
 
 ---
 
-# Ingredient 5 — Solve and Visualise
+# Ingredient 5: Solve and Visualise
 
 `Solve()` runs the time loop. Results are written as **VTK** (`results.pvd` + `.vtu`) for
-ParaView; PyChaste can also snapshot inline via a scene modifier.
+ParaView. PyChaste can also snapshot inline via a scene modifier.
 
 <div class="grid grid-cols-2 gap-4 mt-1 text-xs">
 <div>
@@ -389,7 +415,7 @@ simulator.Solve();
 TS_ASSERT_EQUALS(
     cell_population.GetNumRealCells(), 8u);
 ```
-Then: open `…/results_from_time_0/results.pvd`
+Then open `…/results_from_time_0/results.pvd`
 in ParaView and add glyphs.
 
 </div>
@@ -412,8 +438,8 @@ scene.End()
 
 <div class="mt-3 text-sm">
 
-- Both produce identical `.vtu` output on disk — the science is the same
-- C++ embeds `TS_ASSERT_*` because a tutorial *is* a test; in Python those become `self.assertEqual`
+- Both produce identical `.vtu` output on disk, so the science is the same
+- C++ embeds `TS_ASSERT_*` because a tutorial *is* a test. In Python those become `self.assertEqual`.
 
 </div>
 
@@ -489,7 +515,10 @@ Line for line, the same five ingredients in the same order.
 layout: section
 ---
 
-# Part 3: The C++ vs PyChaste Interface
+<div class="text-center">
+  <div class="text-8xl font-bold" style="color:#002147">Part 3</div>
+  <div class="text-3xl mt-6 opacity-70">The C++ and PyChaste Interfaces</div>
+</div>
 
 ---
 
@@ -506,7 +535,7 @@ If you can read one, you can read the other. The mapping is almost mechanical:
 | Dereference | `*p_generating_mesh` | (just pass the object) |
 | Vectors of cells | `std::vector<CellPtr>` (filled by ref) | a Python list (returned) |
 | Test framework | CxxTest, `TS_ASSERT_*` | `unittest`, `self.assert*` |
-| Build step | compile target, then run binary | none — run the script |
+| Build step | compile target, then run binary | none, just run the script |
 
 ---
 
@@ -519,7 +548,7 @@ If you can read one, you can read the other. The mapping is almost mechanical:
 
 - Class names and method names are **identical**
 - The five-object skeleton and call order
-- Output files (`.pvd`/`.vtu`) — fully interchangeable
+- Output files (`.pvd`/`.vtu`) are fully interchangeable
 - Forces, boundary conditions, killers, modifiers
 - Most cell-cycle and population types are wrapped
 
@@ -530,16 +559,16 @@ If you can read one, you can read the other. The mapping is almost mechanical:
 
 - `VtkScene` inline visualisation (no C++ analogue)
 - Memory management is automatic
-- **Not every** C++ class is wrapped — brand-new
-  research classes (e.g. on a feature branch) may
-  be C++-only until bindings are generated
-- Heavy/long runs: C++ is faster; Python adds call overhead
+- **Not every** C++ class is wrapped. Brand-new
+  research classes (say, on a feature branch) may
+  be C++-only until bindings are generated.
+- Heavy or long runs: C++ is faster, as Python adds call overhead
 
 </div>
 </div>
 
 <div class="mt-5 p-3 rounded text-sm" style="background:#eef3fa;border:1px solid #c5d5e8">
-<b>Rule of thumb:</b> prototype and explore in <b>PyChaste</b>; develop new model classes and run
+<b>Rule of thumb:</b> prototype and explore in <b>PyChaste</b>, then develop new model classes and run
 large production simulations in <b>C++</b>. They read the same files, so you can move between them freely.
 </div>
 
@@ -568,7 +597,7 @@ Each lives in `cell_based/test/tutorial/` and is a single annotated test.
 
 **Extending the skeleton** (also tutorials):
 - A new force, cell-cycle model, killer, boundary
-  condition, or writer — each is "swap one box"
+  condition, or writer, each of which is "swap one box"
 
 </div>
 </div>
