@@ -7,28 +7,36 @@ drawings:
   persist: false
 transition: slide-left
 mdc: true
-date: "02 July 2026"
+date: "Chaste Workshop, Sheffield, 01-03 July 2026"
+email: ""
 ---
 
 <style>
-.oxrse-cover-group { visibility: hidden; position: relative; }
-.oxrse-cover-group::after {
-  content: 'Chaste Workshop, Sheffield, 01-03 July 2026';
+/* The cover layout renders these, so use :global to escape per-slide scoping. */
+:global(.oxrse-cover-group) {
+  visibility: hidden;
+  position: relative;
+}
+:global(.oxrse-cover-group)::after {
+  content: 'Fergus Cooper';
   visibility: visible;
   position: absolute;
   left: 0;
   white-space: nowrap;
 }
-.oxrse-cover-email { display: none; }
+:global(.oxrse-cover-email) { display: none; }
 </style>
 
-<img src="./img/chaste_logo.png" class="absolute bottom-8 right-8" style="height: 3.5rem;" />
+<img src="./img/chaste_logo.png" class="absolute bottom-8 right-8" style="height: 6.5rem;" />
 
 ---
 layout: section
 ---
 
-# Part 1: SEM Theory
+<div class="text-center">
+  <div class="text-8xl font-bold" style="color:#002147">Part 1</div>
+  <div class="text-3xl mt-6 opacity-70">SEM Theory</div>
+</div>
 
 ---
 
@@ -231,7 +239,10 @@ enum SemNodeRegion : unsigned {
 layout: section
 ---
 
-# Part 2: Chaste Implementation
+<div class="text-center">
+  <div class="text-8xl font-bold" style="color:#002147">Part 2</div>
+  <div class="text-3xl mt-6 opacity-70">Chaste Implementation</div>
+</div>
 
 ---
 

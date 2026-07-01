@@ -8,18 +8,23 @@ drawings:
 transition: slide-left
 mdc: true
 date: "Chaste Workshop, Sheffield, 01-03 July 2026"
+email: ""
 ---
 
 <style>
-.oxrse-cover-group { visibility: hidden; position: relative; }
-.oxrse-cover-group::after {
+/* The cover layout renders these, so use :global to escape per-slide scoping. */
+:global(.oxrse-cover-group) {
+  visibility: hidden;
+  position: relative;
+}
+:global(.oxrse-cover-group)::after {
   content: 'Fergus Cooper';
   visibility: visible;
   position: absolute;
   left: 0;
   white-space: nowrap;
 }
-.oxrse-cover-email { display: none; }
+:global(.oxrse-cover-email) { display: none; }
 </style>
 
 <img src="./img/chaste_logo.png" class="absolute bottom-8 right-8" style="height: 6.5rem;" />
@@ -31,7 +36,8 @@ date: "Chaste Workshop, Sheffield, 01-03 July 2026"
 **C**ancer, **H**eart **a**nd **S**oft **T**issue **E**nvironment
 
 - An open-source C++ library for **simulating biological tissue and organs**
-- Built at Oxford, and used for cardiac electrophysiology, cell-based tissue, lung, and more
+- Built originally in Oxford, now distributed: Sheffield, Nottingham and further afield
+- Used for cardiac electrophysiology, cell-based tissue modelling, lung, and more
 - Today we focus on the **cell-based** part: tissue as a population of interacting cells
 
 There are two ways to drive it:
@@ -40,8 +46,7 @@ There are two ways to drive it:
 - **PyChaste**: the same engine exposed to Python, with scripting, notebooks, and inline visualisation.
 
 > The goal today is to understand the *shape* of a Chaste program: the handful of objects every
-> simulation is built from. Learn the skeleton once and the tutorials read like a recipe rather
-> than a mystery.
+> simulation is built from.
 
 ---
 layout: section
@@ -54,9 +59,9 @@ layout: section
 
 ---
 
-# A Cell-Based Model Is Made of Five Ideas
+# A Cell-Based Model Is Made of Five Components
 
-Whatever the biology, a Chaste cell-based simulation always answers the same five questions:
+Whatever the biology, a Chaste cell-based simulation uses five ingredients:
 
 <div class="grid grid-cols-1 gap-1 mt-4 text-sm">
 <div><b>1. Space.</b> &nbsp; Where do cells live? &nbsp;→&nbsp; a <b>Mesh</b></div>
@@ -67,8 +72,8 @@ Whatever the biology, a Chaste cell-based simulation always answers the same fiv
 </div>
 
 <div class="mt-6 p-3 rounded" style="background:#eef3fa;border:1px solid #c5d5e8">
-Every tutorial you will read is these five objects, assembled in this order, and then
-<code>Solve()</code>. Learn the skeleton once and every example becomes a variation on a theme.
+Every tutorial has various combinations these five objects, assembled in this order, and then
+<code>Solve()</code>.
 </div>
 
 ---
@@ -88,27 +93,27 @@ Every tutorial you will read is these five objects, assembled in this order, and
 </div>
 
 <div class="mt-12 text-center text-base" style="color:#002147">
-Build these five objects in order, then call <code>Solve()</code>. That is every cell-based
-simulation in Chaste.
+Build these five objects in order, then call <code>Solve()</code>. That is, essentially, every cell-based.
 </div>
 
 <div class="mt-6 text-center text-sm italic opacity-70">
-Swap any one box and you get a different kind of model. Let's see how.
+Swap any one box and you get a different kind of model.
 </div>
 
 ---
 
-# One Skeleton, Many Models
+# One Skeleton, Many Frameworks
 
 <div class="grid grid-cols-2 gap-6 mt-6 text-sm">
 <div>
 
-**The same skeleton, many flavours.** Swap one box and you change the model:
+**The same skeleton, many frameworks**
 
+- Cellular Potts (on-lattice)
 - Mesh-based (Voronoi springs)
 - Node-based (overlapping spheres)
 - Vertex-based (polygonal cells)
-- Cellular Potts (on-lattice)
+- Immersed boundary (emergent cell shapes)
 - Subcellular Element (SEM)
 
 </div>
