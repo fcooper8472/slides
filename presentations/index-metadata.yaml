@@ -9,3 +9,9 @@ anatomy-of-a-chaste-program:
   title: Anatomy of a Chaste Program
   description: The five objects every Chaste cell-based simulation is built from, shown in both C++ and PyChaste.
   audience: Computational biologists new to Chaste
+
+sem-chaste:
+  number: 3
+  title: The Subcellular Element Model
+  description: The theory of the Subcellular Element Model and its implementation in Chaste.
+  audience: Cell modellers

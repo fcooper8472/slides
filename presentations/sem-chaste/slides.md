@@ -1,6 +1,6 @@
 ---
 theme: oxrse
-title: The Subcellular Element Method
+title: The Subcellular Element Model
 layout: cover
 highlighter: shiki
 drawings:
@@ -32,50 +32,50 @@ layout: section
 - **Cell rheology** requires spatially-extended representations:
   - Stiffness, deformability, and viscoelasticity
   - Distinct interior (bulk) and cortical (membrane) mechanics
-  - Contact area between cells — not just a point force
+  - Contact area between cells: not just a point force
 - Key question: how do individual node interactions produce macroscopic cell mechanics?
-- Solution (Sandersius &amp; Newman 2008): each biological cell = **$N$ interacting subcellular nodes**
+- Solution (Sandersius &amp; Newman, 2008): each biological cell = **$N$ interacting subcellular elements**
 
 ---
 
-# SEM: One Cell = One Set of Subcellular Nodes
+# SEM: One Cell = A Cloud of Subcellular Elements
 
-- Each biological cell is represented by a **SemElement**: an unordered cloud of $N$ nodes
+- Each biological cell is represented by a **SemElement**: an unordered cloud of $N$ **subcellular elements** (Chaste `Node` objects)
 - Two classes of pairwise interaction:
-  - **Intra-cellular** — nodes within the same cell (cohesion + volume exclusion)
-  - **Inter-cellular** — nodes in different cells (adhesion + volume exclusion)
+  - **Intra-cellular**: nodes within the same cell (cohesion + volume exclusion)
+  - **Inter-cellular**: nodes in different cells (adhesion + volume exclusion)
 - Node positions evolve under an **overdamped Langevin** equation
 - Cell shape, stiffness and deformability **emerge** from node configuration
 - Resolution can be increased by raising $N$ without changing macroscopic parameters
 - Node subsets carry regional labels:
-  - **Interior nodes** — bulk mechanical properties
-  - **Boundary/cortex nodes** — surface tension, cell–cell contact
+  - **Interior nodes**: bulk mechanical properties
+  - **Boundary/cortex nodes**: surface tension, cell–cell contact
 
 ---
 
 # Equation of Motion: Overdamped Langevin
 
-At low Reynolds number, inertia is negligible — the overdamped limit applies.
+At low Reynolds number, inertia is negligible, so the overdamped limit applies.
 
-For node $\alpha$ in cell $i$:
+For subcellular element $\alpha$ in cell $i$:
 
 $$
-\eta\,\dot{y}_{\alpha i} \;=\; \xi_{\alpha i}
-  \;-\; \nabla_{\!\alpha i}\!\sum_{\beta \ne \alpha} V_\text{intra}(|\,y_{\alpha i} - y_{\beta i}|)
-  \;-\; \nabla_{\!\alpha i}\!\sum_{j \ne i}\sum_{\beta_j} V_\text{inter}(|\,y_{\alpha i} - y_{\beta_j}|)
+\eta\,\dot{\mathbf{y}}_{\alpha i} \;=\; \boldsymbol{\xi}_{\alpha i}
+  \;-\; \nabla_{\!\alpha i}\!\sum_{\beta \ne \alpha} V_\text{intra}(|\,\mathbf{y}_{\alpha i} - \mathbf{y}_{\beta i}|)
+  \;-\; \nabla_{\!\alpha i}\!\sum_{j \ne i}\sum_{\beta_j} V_\text{inter}(|\,\mathbf{y}_{\alpha i} - \mathbf{y}_{\beta_j}|)
 $$
 
 <div class="grid grid-cols-2 gap-4 mt-4 text-sm">
 <div>
 
-- $\eta$ — viscous damping constant (drag from cytoplasm)
-- $\xi_{\alpha i}$ — stochastic thermal noise force
+- $\eta$: viscous damping constant (drag from cytoplasm)
+- $\xi_{\alpha i}$: stochastic thermal noise force
 
 </div>
 <div>
 
-- $V_\text{intra}$ — intra-cellular potential (same SemElement)
-- $V_\text{inter}$ — inter-cellular potential (different SemElements)
+- $V_\text{intra}$: intra-cellular potential (same SemElement)
+- $V_\text{inter}$: inter-cellular potential (different SemElements)
 
 </div>
 </div>
@@ -99,9 +99,9 @@ V(r) = u_0\,e^{2\rho(1-r^2/r_\text{eq}^2)}
       - 2u_0\,e^{\rho(1-r^2/r_\text{eq}^2)}
 $$
 
-- $u_0$ — well depth (energy scale)
-- $\rho$ — steepness (repulsive wall + attractive range)
-- $r_\text{eq}$ — equilibrium separation ($V$ minimum)
+- $u_0$: well depth (energy scale)
+- $\rho$: steepness (repulsive wall + attractive range)
+- $r_\text{eq}$: equilibrium separation ($V$ minimum)
 - $V(r_\text{eq}) = -u_0$ (minimum energy)
 - Separate $(u_0,\,\rho,\,r_\text{eq})$ for intra and inter pairs
 
@@ -113,7 +113,7 @@ $$
 
 # Force Vector: Morse Gradient
 
-Force on node $A$ from node $B$ — gradient of $V(r)$. Let $s = r^2/r_\text{eq}^2$:
+Force on node $A$ from node $B$, the gradient of $V(r)$. Let $s = r^2/r_\text{eq}^2$:
 
 $$
 \mathbf{F}_A \;=\; \frac{4\rho\,u_0}{r_\text{eq}^2}
@@ -129,6 +129,9 @@ Sign of the bracket determines direction:
 
 Same formula for intra- and inter-cellular pairs; only $u_0$, $\rho$, $r_\text{eq}$ differ.
 Force is zero beyond the cut-off distance (box collection excludes distant pairs).
+
+The attractive force peaks at an inflection near $r \approx 1.1\,r_\text{eq}$: stretched past it a bond yields.
+That is the microscopic origin of the aggregate's ~10% critical strain (Sandersius &amp; Newman, 2008).
 
 ---
 
@@ -152,6 +155,32 @@ $$
 
 ---
 
+# Two Elements Make a Kelvin–Voigt Body
+
+Take two elements in the harmonic limit and drop the noise. The equation of motion reduces
+to a linear spring damped against the cytoplasm:
+
+$$
+\eta\,\dot{\mathbf{y}}_1 = \boldsymbol{\xi}_1 - \kappa(\mathbf{y}_1 - \mathbf{y}_2)
+$$
+
+This is the **Kelvin–Voigt** viscoelastic model (a spring and dashpot in parallel), with
+complex modulus
+
+$$
+G^{*}(\omega) = \kappa + i\eta\omega
+\qquad\Rightarrow\qquad
+G'(\omega) = \kappa,\quad G''(\omega) = \eta\,\omega
+$$
+
+- Storage modulus $G'$ is constant; loss modulus $G''$ grows with frequency
+- Fluid at short times, solid at long times, crossing over at $\omega_0 = \kappa/\eta$
+- So $\eta_0/\kappa_0$ sets the cell's relaxation time (about 1 s for a living cell)
+- A whole cell is *not* one Kelvin–Voigt body: many elements give many relaxation times,
+  which is what produces the weak power-law rheology observed in real cells
+
+---
+
 # Thermal Noise: Stochastic Langevin Forces
 
 Stochastic force added independently to each node at each time step:
@@ -161,16 +190,18 @@ $$
 \qquad \mathbf{z} \sim \mathcal{N}(\mathbf{0},\,\mathbf{I})
 $$
 
-Fluctuation-dissipation theorem — noise correlations balance the damping:
+Fluctuation-dissipation theorem: the noise correlations balance the damping.
+Elements $\alpha,\beta$; cells $i,j$; vector components $m,n$:
 
 $$
-\langle\xi_i(t)\,\xi_j(t')\rangle = 2D\eta^2\,\delta_{ij}\,\delta(t-t')
+\langle\,\xi^{\,m}_{\alpha i}(t)\,\xi^{\,n}_{\beta j}(t')\,\rangle
+  = 2D\eta^2\,\delta_{ij}\,\delta_{\alpha\beta}\,\delta_{mn}\,\delta(t-t')
 $$
 
-- $D$ — diffusion constant; $\Delta t$ — time step; $\eta$ — damping constant
+- $D$: diffusion constant; $\Delta t$: time step; $\eta$: damping constant
 - Two implementations in Chaste:
-  - **`SemGaussianRandomForce`** — independent $\mathcal{N}(0,1)$ per node per component per step
-  - **`SemSpatiallyCorrelatedRandomForce`** — correlated field (`OffLatticeRandomFieldGenerator`) with length scale $L_\text{corr}$
+  - **`SemGaussianRandomForce`**: independent $\mathcal{N}(0,1)$ per node per component per step
+  - **`SemSpatiallyCorrelatedRandomForce`**: correlated field (`OffLatticeRandomFieldGenerator`) with length scale $L_\text{corr}$
   - Setting $L_\text{corr} = r_\text{eq}$ correlates nearest neighbours
 
 ---
@@ -180,29 +211,29 @@ $$
 Problem: changing $N$ (nodes per cell) shifts all pairwise distances.
 Solution: rescale $r_\text{eq}$ and $\kappa$ so that macroscopic stiffness $\kappa_0$ is preserved.
 
-Sandersius &amp; Newman (2008) Section 2 — generalised to dimension $d$:
+Sandersius &amp; Newman (2008) Section 2, generalised to dimension $d$:
 
 $$
 r_\text{eq}(N) = 2R\!\left(\frac{p}{N}\right)^{\!1/d},
 \qquad
 \kappa(N) = \kappa_0\,N^{-1/d}\!\left(1 - \lambda N^{-1/d}\right),
 \qquad
-\eta(N) = \eta_0\,N
+\eta(N) = \eta_0\,N^{-1}
 $$
 
-- $R$ — cell radius; $p$ — packing density; $d$ — spatial dimension; $\lambda$ — correction (default 0)
+- $R$: cell radius; $p$: packing density; $d$: dimension; $\lambda$: leading correction to scaling (paper: $\lambda \approx 0.5$; Chaste default 0)
 - Default packing densities:
   - 2D: $p = \pi/(2\sqrt{3}) \approx 0.907$ (hexagonal close-packing)
   - 3D: $p = \pi/(3\sqrt{2}) \approx 0.741$ (FCC close-packing)
-- Total damping $\eta = \eta_0 N$ — N-invariant at the cell level
+- Per-element damping falls as $N^{-1}$, so the cell-level damping $N\eta = \eta_0$ stays N-invariant
 
 ---
 
 # Regional Structure: Interior vs. Cortex Nodes
 
 Each node carries a `SemNodeRegion` label, set by the mesh generator:
-- **`SEM_INTERIOR_REGION` (= 0)** — interior bulk nodes
-- **`SEM_BOUNDARY_REGION` (= 1)** — surface / cortex nodes (on any grid face)
+- **`SEM_INTERIOR_REGION` (= 0)**: interior bulk nodes
+- **`SEM_BOUNDARY_REGION` (= 1)**: surface / cortex nodes (on any grid face)
 
 `SemRegionalForce` uses region-dependent spring constants and rest lengths:
 - $\kappa_\text{eff} = \tfrac{1}{2}(\kappa_A + \kappa_B)$, $\quad L_{0,\text{eff}} = \tfrac{1}{2}(L_A + L_B)$
@@ -218,6 +249,38 @@ enum SemNodeRegion : unsigned {
 //   mRestLengths     = {0.2, 0.15}  (interior, boundary)
 //   cut-off = 0.5 (hardcoded mesh units)
 ```
+
+---
+
+# What the SEM Captures, and What It Does Not
+
+Sandersius &amp; Newman (2008) tested the single-cell SEM against bulk and bead-microrheology
+experiments on living cells.
+
+<div class="grid grid-cols-2 gap-6 mt-4 text-sm">
+<div class="p-3 rounded" style="background:#f0f7ee;border:1px solid #cfe3c5">
+
+### Captures well
+
+- Hookean elasticity at small strain (modulus $\approx$ 360 Pa, within the 100–1000 Pa living-cell range)
+- Kelvin–Voigt-like creep and full recovery below $\approx$ 10% strain
+- Plastic yield and breakage above $\approx$ 10% strain
+- Weak power-law rheology at intermediate frequencies ($G'$ exponent $\approx 0.14$, $G''\approx 0.55$), from the many relaxation times of a 3-D network
+
+</div>
+<div class="p-3 rounded" style="background:#fbf0ee;border:1px solid #e3c8c5">
+
+### Does not capture
+
+- Long-time fluidity and large-strain flow (no active cytoskeletal remodelling)
+- The high-frequency $3/4$ power law (no explicit polymer physics)
+
+</div>
+</div>
+
+<div class="mt-4 text-center text-sm italic opacity-70">
+Emergent, semi-quantitative single-cell mechanics from simple pairwise rules.
+</div>
 
 ---
 layout: section
@@ -292,8 +355,8 @@ A `DistributedBoxCollection` partitions the domain into boxes of size cut-off:
 - Only node pairs within the cut-off are evaluated &rarr; $\mathcal{O}(N)$ neighbour finding
 
 Key calls each time step (triggered by `SemBasedCellPopulation::Update()`):
-- `UpdateBoxCollection()` &mdash; rehashes node positions into boxes
-- `CalculateNodePairs(mNodePairs)` &mdash; fills the interaction pair list
+- `UpdateBoxCollection()`: rehashes node positions into boxes
+- `CalculateNodePairs(mNodePairs)`: fills the interaction pair list
 
 ```cpp
 // Box collection MUST be set up before constructing the population
@@ -310,13 +373,13 @@ p_mesh->SetUpBoxCollection(cutoff, domain);
 
 # SemElement: One Biological Cell
 
-`SemElement` holds a `std::vector<Node<DIM>*>` — its subcellular node set.
+`SemElement` holds a `std::vector<Node<DIM>*>`, its subcellular node set.
 
-Membership is **bidirectional** — critical for force dispatch:
+Membership is **bidirectional**, critical for force dispatch:
 - `SemElement::rGetNodes()` &rarr; node vector
 - `Node::rGetContainingElementIndices()` &rarr; which SemElement(s) a node belongs to
 
-Constructor calls `RegisterWithNodes()` — binds each node back to this element.
+Constructor calls `RegisterWithNodes()`, which binds each node back to this element.
 `MarkAsDeleted()` unregisters from all nodes (safe cell removal).
 
 ```cpp
@@ -362,12 +425,12 @@ auto p_mesh3 = gen3.GetMesh();
 # SemBasedCellPopulation: Cell List + Mesh
 
 **Invariant**: exactly one live `CellPtr` per non-deleted `SemElement`.
-`NoCellCycleModel` is used — SEM cells do not divide.
+`NoCellCycleModel` is used, since SEM cells do not divide.
 
 `Update()` per time step (called by `OffLatticeSimulation`):
 1. Clear `mNodePairs`
-2. `UpdateBoxCollection()` — refresh box occupancy
-3. `CalculateNodePairs()` — find all potentially-interacting node pairs
+2. `UpdateBoxCollection()`, refresh box occupancy
+3. `CalculateNodePairs()`, find all potentially-interacting node pairs
 
 `GetDampingConstant()` averages $\eta$ over all live elements containing the node
 (handles nodes shared between two cells at element boundaries).
@@ -386,13 +449,13 @@ cell_pop.AddNodePointDataWriter<NodeRegionPointDataWriter>();
 # Force Classes: Deterministic and Stochastic
 
 **Deterministic** (`AbstractTwoBodyInteractionForce`):
-- `SemForce` — full modified Morse potential
-- `SemLinearForce` — harmonic approximation; same parameter interface
-- `SemRegionalForce` — region-dependent $\kappa$ and $r_\text{eq}$; cut-off hardcoded to 0.5
+- `SemForce`: full modified Morse potential
+- `SemLinearForce`: harmonic approximation; same parameter interface
+- `SemRegionalForce`: region-dependent $\kappa$ and $r_\text{eq}$; cut-off hardcoded to 0.5
 
 **Stochastic** (`AbstractSemRandomForce`):
-- `SemGaussianRandomForce` — independent $\mathcal{N}(0,1)$ per node per step
-- `SemSpatiallyCorrelatedRandomForce` — correlated field (`OffLatticeRandomFieldGenerator`)
+- `SemGaussianRandomForce`: independent $\mathcal{N}(0,1)$ per node per step
+- `SemSpatiallyCorrelatedRandomForce`: correlated field (`OffLatticeRandomFieldGenerator`)
 
 ```cpp
 // Gaussian (uncorrelated) noise:
@@ -421,7 +484,7 @@ auto p_mesh = gen.GetMesh();
 // 2. Box collection (MUST precede population construction)
 p_mesh->SetUpBoxCollection(0.25, {-1.0, 2.0, -1.0, 2.0});
 
-// 3. Cells — NoCellCycleModel for SEM (no division)
+// 3. Cells: NoCellCycleModel for SEM (no division)
 std::vector<CellPtr> cells;
 CellsGenerator<NoCellCycleModel, 2> cgen;
 cgen.GenerateBasicRandom(cells, p_mesh->GetNumElements());
@@ -430,7 +493,7 @@ cgen.GenerateBasicRandom(cells, p_mesh->GetNumElements());
 SemBasedCellPopulation<2> pop(*p_mesh, cells);
 pop.SetDampingConstantNormal(1.0);
 
-// 5. Simulator — MANDATORY: ForwardEuler, UseUpdateNodeLocation=false
+// 5. Simulator: MANDATORY ForwardEuler, UseUpdateNodeLocation=false
 OffLatticeSimulation<2> sim(pop);
 sim.SetDt(0.01);  sim.SetEndTime(1.0);
 sim.SetNumericalMethod(boost::make_shared<ForwardEulerNumericalMethod<2>>());
@@ -452,7 +515,7 @@ sim.Solve();
 - `EquilibriumDistance` $= r_\text{eq} = 2R(p/N)^{1/d}$
 - `SpringConstant` $= \kappa = \kappa_0 N^{-1/d}(1-\lambda N^{-1/d})$
 - `WellDepth` $= u_0 = \kappa r_\text{eq}^2 / (8\rho^2)$
-- `DampingConstant` $= \eta = \eta_0 N$
+- `DampingConstant` $= \eta = \eta_0 N$ &nbsp;(here `η₀` is a per-element base, so pass `η₀ = 1/N` for a fixed per-node $\eta$)
 
 Setting `packing=1.0` with `R=scaleFactor/2` gives $r_\text{eq}$ equal to the inter-node spacing exactly.
 
@@ -463,8 +526,8 @@ const SemNScaledParameters p =
         0.25,                 // R_cell
         20.0,                 // κ₀ (macroscopic spring constant)
         5.0,                  // ρ  (must match force's rho)
-        0.0,                  // λ  (correction, default 0)
-        1.0 / num_nodes,      // η₀ → total η = 1 (N-invariant)
+        0.0,                  // λ  (leading correction; paper ≈ 0.5)
+        1.0 / num_nodes,      // η₀: gives per-node η = 1 for any N
         1.0);                 // packing density (cubic grid)
 
 MAKE_PTR(SemForce<3>, p_force);
@@ -479,8 +542,8 @@ pop.SetDampingConstantNormal(p.DampingConstant);
 
 Output written to `$CHASTE_TEST_OUTPUT/<dir>/results_from_time_0/`
 
-- `results.pvd` — master file listing all time steps (entry point for ParaView)
-- `results_<N>.vtu` — node positions and point data at each sampled step
+- `results.pvd`: master file listing all time steps (entry point for ParaView)
+- `results_<N>.vtu`: node positions and point data at each sampled step
 
 Per-node point data arrays (enabled via population writers):
 
@@ -494,20 +557,20 @@ Per-node point data arrays (enabled via population writers):
 2. Filters &rarr; Glyph &rarr; Sphere representation
 3. Colour by `element_id` to distinguish cells; by `node_region` for cortex structure
 
-3D surface reconstruction: `SetOutputElementSurfacesToVtk(true)` on `SemBasedCellPopulation` (requires VTK — uses alpha-shape Delaunay triangulation)
+3D surface reconstruction: `SetOutputElementSurfacesToVtk(true)` on `SemBasedCellPopulation` (requires VTK, uses alpha-shape Delaunay triangulation)
 
 ---
 
 # Current Status and Known Limitations
 
 **Tests passing:**
-- `TestSemBasedCellPopulation` — construction, validation, damping, serialisation
-- `TestSemBasedSimulation` — 2D/3D single and multi-cell runs, noise forces, checkpointing
-- `TestSemParameterScaling` — N-scaling formulas verified against hand-calculated values
-- Tutorial — end-to-end single-cell and multi-cell 2D simulations with VTK output
+- `TestSemBasedCellPopulation`: construction, validation, damping, serialisation
+- `TestSemBasedSimulation`: 2D/3D single and multi-cell runs, noise forces, checkpointing
+- `TestSemParameterScaling`: N-scaling formulas verified against hand-calculated values
+- Tutorial: end-to-end single-cell and multi-cell 2D simulations with VTK output
 
 **Current limitations:**
-- No cell division: `AddCell()` throws — `SemElement` splitting not yet implemented
+- No cell division: `AddCell()` throws: `SemElement` splitting not yet implemented
 - VTK required for 2D/3D surface output (`GetVolumeOfElement`, surface visualisation)
 - `SemRegionalForce` cut-off hardcoded to 0.5 mesh units
 - `SemMesh::ConstructFromMeshReader` reads only `DIM+1` nodes per element (known bug)
