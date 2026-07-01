@@ -60,16 +60,16 @@ At low Reynolds number, inertia is negligible, so the overdamped limit applies.
 For subcellular element $\alpha$ in cell $i$:
 
 $$
-\eta\,\dot{\mathbf{y}}_{\alpha i} \;=\; \boldsymbol{\xi}_{\alpha i}
-  \;-\; \nabla_{\!\alpha i}\!\sum_{\beta \ne \alpha} V_\text{intra}(|\,\mathbf{y}_{\alpha i} - \mathbf{y}_{\beta i}|)
-  \;-\; \nabla_{\!\alpha i}\!\sum_{j \ne i}\sum_{\beta_j} V_\text{inter}(|\,\mathbf{y}_{\alpha i} - \mathbf{y}_{\beta_j}|)
+\eta\,\dot{\mathbf{y}}_{\alpha_i} \;=\; \boldsymbol{\xi}_{\alpha_i}
+  \;-\; \nabla_{\!\alpha_i}\!\sum_{\beta_i \ne \alpha_i} V_\text{intra}(|\,\mathbf{y}_{\alpha_i} - \mathbf{y}_{\beta_i}|)
+  \;-\; \nabla_{\!\alpha_i}\!\sum_{j \ne i}\sum_{\beta_j} V_\text{inter}(|\,\mathbf{y}_{\alpha_i} - \mathbf{y}_{\beta_j}|)
 $$
 
 <div class="grid grid-cols-2 gap-4 mt-4 text-sm">
 <div>
 
 - $\eta$: viscous damping constant (drag from cytoplasm)
-- $\xi_{\alpha i}$: stochastic thermal noise force
+- $\xi_{\alpha_i}$: stochastic thermal noise force
 
 </div>
 <div>
@@ -194,7 +194,7 @@ Fluctuation-dissipation theorem: the noise correlations balance the damping.
 Elements $\alpha,\beta$; cells $i,j$; vector components $m,n$:
 
 $$
-\langle\,\xi^{\,m}_{\alpha i}(t)\,\xi^{\,n}_{\beta j}(t')\,\rangle
+\langle\,\xi^{\,m}_{\alpha_i}(t)\,\xi^{\,n}_{\beta_j}(t')\,\rangle
   = 2D\eta^2\,\delta_{ij}\,\delta_{\alpha\beta}\,\delta_{mn}\,\delta(t-t')
 $$
 
@@ -218,14 +218,14 @@ r_\text{eq}(N) = 2R\!\left(\frac{p}{N}\right)^{\!1/d},
 \qquad
 \kappa(N) = \kappa_0\,N^{-1/d}\!\left(1 - \lambda N^{-1/d}\right),
 \qquad
-\eta(N) = \eta_0\,N^{-1}
+\eta(N) = \eta_0\,N
 $$
 
 - $R$: cell radius; $p$: packing density; $d$: dimension; $\lambda$: leading correction to scaling (paper: $\lambda \approx 0.5$; Chaste default 0)
 - Default packing densities:
   - 2D: $p = \pi/(2\sqrt{3}) \approx 0.907$ (hexagonal close-packing)
   - 3D: $p = \pi/(3\sqrt{2}) \approx 0.741$ (FCC close-packing)
-- Per-element damping falls as $N^{-1}$, so the cell-level damping $N\eta = \eta_0$ stays N-invariant
+- Per-element damping grows as $N$; pass a base $\eta_0 = \eta_\text{target}/N$ to hold the per-node damping fixed as $N$ varies
 
 ---
 
@@ -244,9 +244,9 @@ enum SemNodeRegion : unsigned {
     SEM_INTERIOR_REGION,   // = 0: interior bulk nodes
     SEM_BOUNDARY_REGION    // = 1: cortex / surface nodes
 };
-// SemRegionalForce defaults:
-//   mSpringConstants = {1.0, 2.0}   (interior, boundary)
-//   mRestLengths     = {0.2, 0.15}  (interior, boundary)
+// SemRegionalForce defaults (3rd slot unused; only 2 regions exist):
+//   mSpringConstants = {1.0, 2.0, 3.0}   (interior, boundary, -)
+//   mRestLengths     = {0.2, 0.15, 0.1}  (interior, boundary, -)
 //   cut-off = 0.5 (hardcoded mesh units)
 ```
 
@@ -549,23 +549,49 @@ Per-node point data arrays (enabled via population writers):
 
 | Writer class | Array name | Values |
 |---|---|---|
-| `ElementIdNodePointDataWriter` | `element_id` | integer cell index per node |
-| `NodeRegionPointDataWriter` | `node_region` | 0 = interior, 1 = cortex |
+| `ElementIdNodePointDataWriter` | `Element ID` | integer cell index per node |
+| `NodeRegionPointDataWriter` | `Node Region` | 0 = interior, 1 = cortex |
 
 **ParaView workflow:**
 1. File &rarr; Open &rarr; `results.pvd`
 2. Filters &rarr; Glyph &rarr; Sphere representation
-3. Colour by `element_id` to distinguish cells; by `node_region` for cortex structure
+3. Colour by `Element ID` to distinguish cells; by `Node Region` for cortex structure
 
-3D surface reconstruction: `SetOutputElementSurfacesToVtk(true)` on `SemBasedCellPopulation` (requires VTK, uses alpha-shape Delaunay triangulation)
+Surface reconstruction (alpha-shape) is on by default &mdash; see next slide.
+
+---
+
+# Surface Reconstruction: Alpha-Shape Geometry
+
+Raw SEM output is just a **point cloud** per cell. `SemElementGeometry::GenerateSurface()` turns
+that cloud into an actual boundary, for both volume/area measurement and visualisation.
+
+**Method:** VTK Delaunay triangulation (`vtkDelaunay2D` / `vtkDelaunay3D`) restricted to an
+**alpha-shape**: only triangulation edges/faces below a size threshold $\alpha$ are kept, so the
+surface hugs the point cloud rather than tracing the full convex hull.
+
+Two dials on `SemMesh`, both scaled by the element's local node spacing:
+- `SetSemSurfaceAlphaMultiplier()` (default 2.0): sets $\alpha = \text{multiplier} \times \text{spacing}$
+- `SetSemSurfaceExpansionMultiplier()` (default 0.5): pushes surface points outward from the
+  centroid, so the skin sits outside the node centres rather than through them
+
+Returns `Points` + `Lines` (2D) / `Triangles` (3D), plus `Measure` (length/area/volume) &mdash;
+used directly by `SemMesh::GetVolumeOfElement()`. Requires &ge;3 nodes (2D) / &ge;4 nodes (3D) and
+Chaste built with VTK.
+
+**Visualising in ParaView:** enabled by default (`SetOutputElementSurfacesToVtk`); surface
+triangles/lines are written into the *same* `results_<N>.vtu` as the raw nodes, tagged by cell
+data `SemOutputKind` (0 = raw node point-cloud, 1 = generated surface facet) and
+`SemElementIndex` (owning cell). **Filters &rarr; Threshold** on `SemOutputKind == 1` isolates
+the reconstructed surfaces; colour by `SemElementIndex` for multi-cell views.
 
 ---
 
 # Current Status and Known Limitations
 
 **Tests passing:**
-- `TestSemBasedCellPopulation`: construction, validation, damping, serialisation
-- `TestSemBasedSimulation`: 2D/3D single and multi-cell runs, noise forces, checkpointing
+- `TestSemBasedCellPopulation`: construction, validation, damping
+- `TestSemBasedSimulation`: 2D/3D single and multi-cell runs, noise forces
 - `TestSemParameterScaling`: N-scaling formulas verified against hand-calculated values
 - Tutorial: end-to-end single-cell and multi-cell 2D simulations with VTK output
 
