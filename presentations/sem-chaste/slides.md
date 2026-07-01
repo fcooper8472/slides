@@ -11,22 +11,6 @@ date: "Chaste Workshop, Sheffield, 01-03 July 2026"
 email: ""
 ---
 
-<style>
-/* The cover layout renders these, so use :global to escape per-slide scoping. */
-:global(.oxrse-cover-group) {
-  visibility: hidden;
-  position: relative;
-}
-:global(.oxrse-cover-group)::after {
-  content: 'Fergus Cooper';
-  visibility: visible;
-  position: absolute;
-  left: 0;
-  white-space: nowrap;
-}
-:global(.oxrse-cover-email) { display: none; }
-</style>
-
 <img src="./img/chaste_logo.png" class="absolute bottom-8 right-8" style="height: 6.5rem;" />
 
 ---

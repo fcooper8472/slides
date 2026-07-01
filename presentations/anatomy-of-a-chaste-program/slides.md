@@ -8,24 +8,7 @@ drawings:
 transition: slide-left
 mdc: true
 date: "Chaste Workshop, Sheffield, 01-03 July 2026"
-email: ""
 ---
-
-<style>
-/* The cover layout renders these, so use :global to escape per-slide scoping. */
-:global(.oxrse-cover-group) {
-  visibility: hidden;
-  position: relative;
-}
-:global(.oxrse-cover-group)::after {
-  content: 'Fergus Cooper';
-  visibility: visible;
-  position: absolute;
-  left: 0;
-  white-space: nowrap;
-}
-:global(.oxrse-cover-email) { display: none; }
-</style>
 
 <img src="./img/chaste_logo.png" class="absolute bottom-8 right-8" style="height: 6.5rem;" />
 
@@ -130,16 +113,14 @@ The population class you pick tells you which one you need.
 </div>
 
 <div class="mt-8 p-3 rounded text-sm" style="background:#eef3fa;border:1px solid #c5d5e8">
-This is why the rest of the workshop feels familiar: once you know one model, the others are the
-same recipe with a different box swapped in.
+Once you decide on the model, just swap in specific components to each box.
 </div>
 
 ---
 
 # How the Pieces Map to Classes
 
-Chaste leans heavily on **abstract base classes**: you choose a concrete subclass, but the
-simulation only ever talks to the interface. That is why swapping models is so cheap.
+Chaste uses **object oriented programming**.
 
 | Idea | Abstract base | Concrete example |
 |---|---|---|
@@ -147,14 +128,13 @@ simulation only ever talks to the interface. That is why swapping models is so c
 | One cell's biology | `AbstractCellCycleModel` | `UniformCellCycleModel`, `NoCellCycleModel` |
 | Tissue | `AbstractCellPopulation<DIM>` | `NodeBasedCellPopulation`, `VertexBasedCellPopulation` |
 | Physics | `AbstractForce<DIM>` | `GeneralisedLinearSpringForce`, `SemForce` |
-| Constraints | `AbstractCellPopulationBoundaryCondition` | `SphereGeometryBoundaryCondition` |
 | Time loop | `AbstractCellBasedSimulation` | `OffLatticeSimulation`, `OnLatticeSimulation` |
 
 The cell list itself is a `std::vector<CellPtr>` in C++, and a plain list of cells in Python.
 
 ---
 
-# Two Front Doors: C++ and PyChaste
+# Two Front Doors: C++ and Python
 
 <div class="grid grid-cols-2 gap-6 mt-4 text-sm">
 <div class="p-3 rounded" style="background:#eef3fa;border:1px solid #c5d5e8">
@@ -192,7 +172,7 @@ layout: section
 
 <div class="text-center">
   <div class="text-8xl font-bold" style="color:#002147">Part 2</div>
-  <div class="text-3xl mt-6 opacity-70">Building One, Piece by Piece</div>
+  <div class="text-3xl mt-6 opacity-70">Building a Model, Piece by Piece</div>
   <div class="text-xl mt-3 opacity-50">A node-based monolayer, in both languages</div>
 </div>
 
@@ -200,7 +180,7 @@ layout: section
 
 # Ingredient 1: The Mesh (Space)
 
-A **mesh** holds the spatial degrees of freedom. For a node-based model that is a
+A **mesh** holds the spatial information. For a node-based model that is a
 `NodesOnlyMesh`: cells are points, and a **cut-off length** sets who interacts with whom.
 
 <div class="grid grid-cols-2 gap-4 mt-2 text-xs">
@@ -321,7 +301,11 @@ cell_population = \
 
 <div class="mt-4 text-sm">
 
-This one line encodes the modelling paradigm. Change just this class and you change the model:
+This one line encodes the modelling paradigm.
+
+---
+
+# Different Modelling Paradigms
 
 | Population class | Model family | Needs simulation |
 |---|---|---|
@@ -329,29 +313,6 @@ This one line encodes the modelling paradigm. Change just this class and you cha
 | `NodeBasedCellPopulation` | overlapping spheres | `OffLatticeSimulation` |
 | `VertexBasedCellPopulation` | polygonal cells | `OffLatticeSimulation` |
 | `PottsBasedCellPopulation` | cellular Potts | `OnLatticeSimulation` |
-
-</div>
-
----
-
-# PyChaste Bonus: Peek Before You Run
-
-Because PyChaste runs in notebooks, you can render the population *before* solving. That is a
-quick sanity check, whereas the C++ workflow only shows you the result in ParaView after the run.
-
-```python
-scene = chaste.visualization.VtkScene[2]()
-scene.SetCellPopulation(cell_population)
-scene.Start()                       # shows the initial tissue inline
-```
-
-<div class="mt-4 text-sm">
-
-- `VtkScene` has **no C++ equivalent in the workflow**. It is a PyChaste convenience built for
-  interactive use.
-- Later we attach it as a *modifier* so snapshots are captured *during* the run
-- This is the single biggest day-to-day reason biologists reach for PyChaste: a tight, visual,
-  iterate-in-seconds loop
 
 </div>
 
@@ -455,7 +416,6 @@ scene.End()
 <div class="grid grid-cols-2 gap-4 text-xs">
 <div>
 
-**C++ (a CxxTest method)**
 ```cpp
 void TestMonolayer()
 {
@@ -484,7 +444,6 @@ void TestMonolayer()
 </div>
 <div>
 
-**PyChaste (a script / notebook)**
 ```python
 import chaste, chaste.cell_based, chaste.mesh
 
@@ -529,16 +488,12 @@ layout: section
 
 # Translating Between the Two
 
-If you can read one, you can read the other. The mapping is almost mechanical:
-
 | Concept | C++ | PyChaste |
 |---|---|---|
 | Module / namespace | `#include "NodesOnlyMesh.hpp"` | `import chaste.mesh` |
-| Dimension parameter | `Foo<2>` | `Foo[2]` |
 | Templated on a *type* | `CellsGenerator<UniformCellCycleModel, 2>` | `CellsGenerator["UniformCellCycleModel", 2]` |
 | Heap object / smart ptr | `MAKE_PTR(Force<2>, p_f);` | `f = Force[2]()` |
 | Dereference | `*p_generating_mesh` | (just pass the object) |
-| Vectors of cells | `std::vector<CellPtr>` (filled by ref) | a Python list (returned) |
 | Test framework | CxxTest, `TS_ASSERT_*` | `unittest`, `self.assert*` |
 | Build step | compile target, then run binary | none, just run the script |
 
@@ -566,7 +521,7 @@ If you can read one, you can read the other. The mapping is almost mechanical:
 - Memory management is automatic
 - **Not every** C++ class is wrapped. Brand-new
   research classes (say, on a feature branch) may
-  be C++-only until bindings are generated.
+  be C++ only until bindings are generated.
 - Heavy or long runs: C++ is faster, as Python adds call overhead
 
 </div>
