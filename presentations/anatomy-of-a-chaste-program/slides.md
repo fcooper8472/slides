@@ -118,7 +118,11 @@ Once you decide on the model, just swap in specific components to each box.
 
 ---
 
-<img src="./img/frameworks.png" class="absolute inset-0 w-full h-full" style="object-fit: contain;" />
+# One Skeleton, Many Frameworks
+
+<div class="absolute left-0 right-0 flex items-center justify-center" style="top: var(--oxrse-header-height); bottom: 0; padding: 1rem 2rem 2rem;">
+  <img src="./img/frameworks.png" class="max-w-full max-h-full" style="object-fit: contain;" />
+</div>
 
 ---
 
@@ -133,8 +137,6 @@ Chaste uses **object oriented programming**.
 | Tissue | `AbstractCellPopulation<DIM>` | `NodeBasedCellPopulation`, `VertexBasedCellPopulation` |
 | Physics | `AbstractForce<DIM>` | `GeneralisedLinearSpringForce`, `SemForce` |
 | Time loop | `AbstractCellBasedSimulation` | `OffLatticeSimulation`, `OnLatticeSimulation` |
-
-The cell list itself is a `std::vector<CellPtr>` in C++, and a plain list of cells in Python.
 
 ---
 
