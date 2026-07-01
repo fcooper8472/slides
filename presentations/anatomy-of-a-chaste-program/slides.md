@@ -303,9 +303,13 @@ cell_population = \
 
 This one line encodes the modelling paradigm.
 
+</div>
+
 ---
 
 # Different Modelling Paradigms
+
+<div class="mt-4 text-sm">
 
 | Population class | Model family | Needs simulation |
 |---|---|---|
