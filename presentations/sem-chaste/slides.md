@@ -23,6 +23,8 @@ layout: section
 </div>
 
 ---
+class: spread
+---
 
 # Motivation: Modelling Cell Rheology
 
@@ -35,6 +37,8 @@ layout: section
 - Solution (Sandersius &amp; Newman, 2008): represent each cell as **$N$ interacting subcellular
   elements**
 
+---
+class: spread
 ---
 
 # SEM: One Cell = A Cloud of Subcellular Elements
@@ -138,7 +142,7 @@ $$
 
 # Springy and Viscous: Kelvin-Voigt Behaviour
 
-Take two connected elements and drop the noise &mdash; a spring, damped by the cytoplasm:
+Take two connected elements: a spring, damped by the cytoplasm:
 
 $$
 \eta\,\dot{\mathbf{y}}_1 = \boldsymbol{\xi}_1 - \kappa(\mathbf{y}_1 - \mathbf{y}_2)
@@ -189,6 +193,8 @@ $$
 - Damping is rescaled too (Sandersius &amp; Newman, 2008, Section 2), so whole-cell dynamics
   look the same regardless of how finely the cell is resolved
 
+---
+class: spread
 ---
 
 # Interior vs. Cortex: Regional Structure
@@ -286,7 +292,6 @@ p_mesh->SetUpBoxCollection(
     0.25, {-1.0, 2.0, -1.0, 2.0});
 
 // 2. One cell per SemElement
-//    (SEM cells don't divide)
 std::vector<CellPtr> cells;
 CellsGenerator<NoCellCycleModel, 2> cell_gen;
 cell_gen.GenerateBasicRandom(
@@ -308,8 +313,6 @@ sim.SetEndTime(1.0);
 sim.SetNumericalMethod(
     boost::make_shared<
         ForwardEulerNumericalMethod<2>>());
-sim.GetNumericalMethod()
-   ->SetUseUpdateNodeLocation(false);
 
 // 5. Add pairwise force (cut-off must
 //    match the box collection), then run
