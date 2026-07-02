@@ -102,12 +102,27 @@ $$
 - Further than $r_\text{eq}$, up to a cut-off: **attractive** (holds nodes together)
 - Separate $(u_0,\rho,r_\text{eq})$ for intra- vs inter-cellular pairs
 
+</div>
+<div>
+
+<img src="./img/morse_plot.svg" class="w-full rounded shadow-md" />
+
+</div>
+</div>
+
+---
+
+# How Elements Interact: Pairwise Potential
+
 For small stretches near $r_\text{eq}$, this behaves just like a simple spring (Hooke's law):
 
 $$
 V_\text{lin}(r) \approx \tfrac{1}{2}\kappa(r-r_\text{eq})^2,
 \qquad \kappa = \frac{8\rho^2 u_0}{r_\text{eq}^2}
 $$
+
+<div class="grid grid-cols-2 gap-4 mt-2">
+<div>
 
 `SemLinearForce` uses this cheaper spring approximation directly.
 
@@ -121,7 +136,7 @@ $$
 
 ---
 
-# Springy and Viscous: Kelvin&ndash;Voigt Behaviour
+# Springy and Viscous: Kelvin-Voigt Behaviour
 
 Take two connected elements and drop the noise &mdash; a spring, damped by the cytoplasm:
 
@@ -129,10 +144,10 @@ $$
 \eta\,\dot{\mathbf{y}}_1 = \boldsymbol{\xi}_1 - \kappa(\mathbf{y}_1 - \mathbf{y}_2)
 $$
 
-This is a **Kelvin&ndash;Voigt** body: a spring and a damper (dashpot) acting together.
+This is a **Kelvin-Voigt** body: a spring and a damper (dashpot) acting together.
 
 - Solid-like (springy) at short times; fluid-like (flowing) at long times
-- $\eta/\kappa$ sets how long that crossover takes &mdash; about 1 s for a living cell
+- $\eta/\kappa$ sets how long that crossover takes: about 1 s for a living cell
 - A whole cell has *many* connected elements, each with a slightly different crossover time.
   Together they reproduce the smooth, gradual "creep" seen in real cells, rather than a single
   sharp spring-like snap.
@@ -184,7 +199,6 @@ surface), and the interaction strength can differ between them:
 - Higher stiffness on the cortex mimics a real cell's stiffer outer skin (surface tension)
 - Shorter rest length on the cortex models a thinner membrane layer
 
-<div class="mt-6 text-sm">
 
 **How well does this simple model do?** Tested against real single-cell rheology experiments
 (Sandersius &amp; Newman, 2008):
@@ -192,7 +206,6 @@ surface), and the interaction strength can differ between them:
 - Yields and breaks under large stretches, like a real cell &#10003;
 - Doesn't capture long-time active flow (no cytoskeletal remodelling) &mdash; needs extensions &#10007;
 
-</div>
 
 ---
 layout: section
@@ -219,7 +232,7 @@ Models vary in how much sub-cellular detail they resolve:
   <div class="flex-1 rounded-lg py-3 px-1 text-xs font-bold leading-tight" style="background:#002147;color:white;border:2px solid #e53e3e">SEM<br><span style="color:#fc8181;font-size:0.65rem">&#9733; this work</span></div>
 </div>
 <div class="mt-2 text-center text-sm italic opacity-60">
-  &larr;&ensp;Increasing biophysical detail&ensp;&rarr;
+  Increasing biophysical detail&ensp;&rarr;
 </div>
 
 <div class="mt-4 grid grid-cols-3 gap-2 text-sm">
@@ -247,7 +260,7 @@ Models vary in how much sub-cellular detail they resolve:
 | Concept | Chaste class | What it does |
 |---|---|---|
 | All the nodes, for every cell | `SemMesh` | Stores nodes, finds nearby pairs efficiently |
-| One biological cell | `SemElement` | Holds the set of nodes belonging to that cell |
+| One "cell" | `SemElement` | Holds the set of nodes belonging to that cell |
 | Cells + mesh + bookkeeping | `SemBasedCellPopulation` | Ties everything together for a simulation |
 | The physics | `SemForce` family | Computes the pairwise forces each time step |
 
@@ -261,32 +274,53 @@ Models vary in how much sub-cellular detail they resolve:
 
 # Setting Up a Simulation
 
+<div class="grid grid-cols-2 gap-4 text-xs">
+<div>
+
 ```cpp
-// 1. A grid of nodes for one cell (3x3 nodes, 0.5 units wide)
+// 1. A grid of nodes for one cell
+//    (3x3 nodes, 0.5 units wide)
 SemSingleElementMeshGenerator<2> gen({3, 3}, 0.5);
 auto p_mesh = gen.GetMesh();
-p_mesh->SetUpBoxCollection(0.25, {-1.0, 2.0, -1.0, 2.0});
+p_mesh->SetUpBoxCollection(
+    0.25, {-1.0, 2.0, -1.0, 2.0});
 
-// 2. One cell per SemElement (SEM cells don't divide)
+// 2. One cell per SemElement
+//    (SEM cells don't divide)
 std::vector<CellPtr> cells;
 CellsGenerator<NoCellCycleModel, 2> cell_gen;
-cell_gen.GenerateBasicRandom(cells, p_mesh->GetNumElements());
+cell_gen.GenerateBasicRandom(
+    cells, p_mesh->GetNumElements());
 
-// 3. Population + simulator (SEM requires Forward-Euler)
+// 3. Population marries cells to the mesh
 SemBasedCellPopulation<2> pop(*p_mesh, cells);
 pop.SetDampingConstantNormal(1.0);
+```
+
+</div>
+<div>
+
+```cpp
+// 4. Simulator (SEM requires Forward-Euler)
 OffLatticeSimulation<2> sim(pop);
 sim.SetDt(0.01);
 sim.SetEndTime(1.0);
-sim.SetNumericalMethod(boost::make_shared<ForwardEulerNumericalMethod<2>>());
-sim.GetNumericalMethod()->SetUseUpdateNodeLocation(false);
+sim.SetNumericalMethod(
+    boost::make_shared<
+        ForwardEulerNumericalMethod<2>>());
+sim.GetNumericalMethod()
+   ->SetUseUpdateNodeLocation(false);
 
-// 4. Add the pairwise force (cut-off must match the box collection) and run
+// 5. Add pairwise force (cut-off must
+//    match the box collection), then run
 MAKE_PTR(SemForce<2>, p_force);
 p_force->SetIntraCutOffDistance(0.25);
 sim.AddForce(p_force);
 sim.Solve();
 ```
+
+</div>
+</div>
 
 `SemMultiElementMeshGenerator` tiles several cells into a lattice, for multi-cell simulations.
 
@@ -305,20 +339,3 @@ Output written to `$CHASTE_TEST_OUTPUT/<dir>/results_from_time_0/`:
 
 Chaste can also reconstruct a smooth surface around each cell's nodes for nicer visuals
 (on by default) &mdash; useful once you have more than a handful of cells to look at.
-
----
-
-# Status and What's Next
-
-**Tests passing:**
-- Construction, damping, and basic validation of a SEM cell population
-- 2D and 3D single- and multi-cell simulations, with and without noise
-- N-scaling formulas checked against hand-calculated values
-- An end-to-end tutorial with VTK output
-
-**Known limitation:** cells can't yet divide (`SemElement` splitting isn't implemented)
-
-**Planned next:**
-- Cell division via node-set splitting
-- Parallel support for large multi-cell simulations
-- Full save/reload (checkpointing) support
